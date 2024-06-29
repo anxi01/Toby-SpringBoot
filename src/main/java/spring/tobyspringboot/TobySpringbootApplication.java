@@ -10,19 +10,23 @@ public class TobySpringbootApplication {
 
   public static void main(String[] args) {
 
-    // 스프링 컨테이너(ApplicationContext) 생성
-    GenericWebApplicationContext applicationContext = new GenericWebApplicationContext();
+    GenericWebApplicationContext applicationContext = new GenericWebApplicationContext() {
+      @Override
+      protected void onRefresh() {
+        super.onRefresh();
+
+        // onRefresh를 통해 애플리케이션의 특정 상태를 초기화하거나 설정할 수 있다.
+        ServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
+        WebServer webServer = serverFactory.getWebServer(servletContext -> {
+          servletContext.addServlet("dispatcherServlet", new DispatcherServlet(this))
+              .addMapping("/*");
+        });
+        webServer.start();
+      }
+    };
     applicationContext.registerBean(HelloController.class);
     applicationContext.registerBean(SimpleHelloService.class);
     applicationContext.refresh();
-
-    // 서블릿 컨테이너를 코드로 실행 및 서블릿 등록
-    ServletWebServerFactory serverFactory = new TomcatServletWebServerFactory();
-    WebServer webServer = serverFactory.getWebServer(servletContext -> {
-      servletContext.addServlet("dispatcherServlet", new DispatcherServlet(applicationContext))
-          .addMapping("/*");
-    });
-    webServer.start();
   }
 
 }
