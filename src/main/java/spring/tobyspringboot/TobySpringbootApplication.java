@@ -3,14 +3,27 @@ package spring.tobyspringboot;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
-import org.springframework.web.context.support.GenericWebApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
+@Configuration // 클래스 레벨에서 구성 정보가 있음을 먼저 스프링 컨테이너에게 알려준다.
 public class TobySpringbootApplication {
+
+  @Bean
+  public HelloController helloController(HelloService helloService) {
+    return new HelloController(helloService);
+  }
+
+  @Bean
+  public HelloService helloService() {
+    return new SimpleHelloService();
+  }
 
   public static void main(String[] args) {
 
-    GenericWebApplicationContext applicationContext = new GenericWebApplicationContext() {
+    AnnotationConfigWebApplicationContext applicationContext = new AnnotationConfigWebApplicationContext() {
       @Override
       protected void onRefresh() {
         super.onRefresh();
@@ -24,8 +37,7 @@ public class TobySpringbootApplication {
         webServer.start();
       }
     };
-    applicationContext.registerBean(HelloController.class);
-    applicationContext.registerBean(SimpleHelloService.class);
+    applicationContext.register(TobySpringbootApplication.class);
     applicationContext.refresh();
   }
 
